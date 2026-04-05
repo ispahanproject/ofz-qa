@@ -32,6 +32,44 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Login Screen */
+#loginScreen {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; background: var(--bg);
+}
+#appScreen { display: none; }
+.login-card {
+  background: var(--card); border-radius: 20px; padding: 48px 40px;
+  box-shadow: var(--shadow-lg); max-width: 400px; width: 90%; text-align: center;
+}
+.login-logo {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: linear-gradient(135deg, var(--om), var(--aom));
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-weight: 800; font-size: 16px;
+  margin: 0 auto 20px;
+}
+.login-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.login-card p { font-size: 13px; color: var(--text-3); margin-bottom: 28px; }
+.login-input {
+  width: 100%; padding: 14px 16px; border: 1.5px solid var(--border);
+  border-radius: 12px; font-size: 15px; font-family: inherit;
+  outline: none; text-align: center; letter-spacing: 2px;
+  transition: all 0.2s;
+}
+.login-input:focus { border-color: var(--ring); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
+.login-input.error { border-color: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.1); }
+.login-btn {
+  width: 100%; padding: 14px; background: var(--text); color: white;
+  border: none; border-radius: 12px; font-size: 15px; font-weight: 600;
+  font-family: inherit; cursor: pointer; margin-top: 12px; transition: opacity 0.2s;
+}
+.login-btn:hover { opacity: 0.85; }
+.login-btn:disabled { opacity: 0.5; cursor: default; }
+.login-error {
+  color: #ef4444; font-size: 13px; margin-top: 12px; min-height: 20px;
+}
+
 /* Header */
 .header {
   background: var(--card);
@@ -84,9 +122,7 @@ body {
 .tab.active .tab-count, .tab.active .tab-label { color: white; }
 
 /* Search */
-.search-bar {
-  position: relative; margin-bottom: 16px;
-}
+.search-bar { position: relative; margin-bottom: 16px; }
 .search-bar svg {
   position: absolute; left: 16px; top: 50%; transform: translateY(-50%);
   width: 18px; height: 18px; color: var(--text-3); pointer-events: none;
@@ -101,9 +137,7 @@ body {
 .search-bar input::placeholder { color: var(--text-3); }
 .search-bar input:focus { border-color: var(--ring); box-shadow: 0 0 0 3px rgba(59,130,246,0.12); }
 
-.filters {
-  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;
-}
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
 .filter-chip {
   padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 10px;
   font-size: 13px; font-family: inherit; background: var(--card);
@@ -217,87 +251,159 @@ body {
   .tab-count { font-size: 20px; }
   .main { padding: 16px; }
   .qa-card { padding: 16px; }
+  .login-card { padding: 36px 28px; }
 }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-inner">
-    <div class="logo">
-      <div class="logo-mark">Q&A</div>
-      <h1>OFZ データベース<span id="stat-total"></span></h1>
-    </div>
-    <div class="stat-pills">
-      <div class="stat-pill" id="stat-om"></div>
-      <div class="stat-pill" id="stat-rm"></div>
-      <div class="stat-pill" id="stat-aom"></div>
-    </div>
+<!-- Login Screen -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">Q&A</div>
+    <h2>OFZ Q&A データベース</h2>
+    <p>アクセスにはパスワードが必要です</p>
+    <input type="password" class="login-input" id="passwordInput" placeholder="パスワード" autocomplete="off">
+    <button class="login-btn" id="loginBtn" onclick="attemptLogin()">ログイン</button>
+    <div class="login-error" id="loginError"></div>
   </div>
 </div>
 
-<div class="main">
-  <div class="tabs">
-    <div class="tab active" data-tab="all" onclick="switchTab('all')">
-      <span class="tab-count" id="count-all">-</span>
-      <span class="tab-label">All</span>
-    </div>
-    <div class="tab" data-tab="om" onclick="switchTab('om')">
-      <span class="tab-count" id="count-om">-</span>
-      <span class="tab-label">OM</span>
-    </div>
-    <div class="tab" data-tab="rm" onclick="switchTab('rm')">
-      <span class="tab-count" id="count-rm">-</span>
-      <span class="tab-label">Route Manual</span>
-    </div>
-    <div class="tab" data-tab="aom" onclick="switchTab('aom')">
-      <span class="tab-count" id="count-aom">-</span>
-      <span class="tab-label">AOM</span>
+<!-- App Screen -->
+<div id="appScreen">
+  <div class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <div class="logo-mark">Q&A</div>
+        <h1>OFZ データベース<span id="stat-total"></span></h1>
+      </div>
+      <div class="stat-pills">
+        <div class="stat-pill" id="stat-om"></div>
+        <div class="stat-pill" id="stat-rm"></div>
+        <div class="stat-pill" id="stat-aom"></div>
+      </div>
     </div>
   </div>
 
-  <div class="search-bar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" id="searchInput" placeholder="キーワードで検索..." autocomplete="off">
-  </div>
-
-  <div class="filters">
-    <select class="filter-chip" id="filterAircraft" onchange="doSearch()">
-      <option value="">機種</option>
-    </select>
-    <select class="filter-chip" id="filterCategory" onchange="doSearch()">
-      <option value="">カテゴリ</option>
-    </select>
-  </div>
-
-  <div class="results-bar">
-    <div class="results-count" id="resultsCount"></div>
-    <div class="sort-group">
-      <button class="sort-btn active" data-sort="date-desc" onclick="setSort(this)">新しい順</button>
-      <button class="sort-btn" data-sort="date-asc" onclick="setSort(this)">古い順</button>
-      <button class="sort-btn" data-sort="relevance" onclick="setSort(this)" id="sortRelevance" style="display:none">関連度</button>
+  <div class="main">
+    <div class="tabs">
+      <div class="tab active" data-tab="all" onclick="switchTab('all')">
+        <span class="tab-count" id="count-all">-</span>
+        <span class="tab-label">All</span>
+      </div>
+      <div class="tab" data-tab="om" onclick="switchTab('om')">
+        <span class="tab-count" id="count-om">-</span>
+        <span class="tab-label">OM</span>
+      </div>
+      <div class="tab" data-tab="rm" onclick="switchTab('rm')">
+        <span class="tab-count" id="count-rm">-</span>
+        <span class="tab-label">Route Manual</span>
+      </div>
+      <div class="tab" data-tab="aom" onclick="switchTab('aom')">
+        <span class="tab-count" id="count-aom">-</span>
+        <span class="tab-label">AOM</span>
+      </div>
     </div>
-  </div>
 
-  <div class="qa-list" id="qaList"></div>
-  <div class="pagination" id="pagination"></div>
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="キーワードで検索..." autocomplete="off">
+    </div>
+
+    <div class="filters">
+      <select class="filter-chip" id="filterAircraft" onchange="doSearch()">
+        <option value="">機種</option>
+      </select>
+      <select class="filter-chip" id="filterCategory" onchange="doSearch()">
+        <option value="">カテゴリ</option>
+      </select>
+    </div>
+
+    <div class="results-bar">
+      <div class="results-count" id="resultsCount"></div>
+      <div class="sort-group">
+        <button class="sort-btn active" data-sort="date-desc" onclick="setSort(this)">新しい順</button>
+        <button class="sort-btn" data-sort="date-asc" onclick="setSort(this)">古い順</button>
+        <button class="sort-btn" data-sort="relevance" onclick="setSort(this)" id="sortRelevance" style="display:none">関連度</button>
+      </div>
+    </div>
+
+    <div class="qa-list" id="qaList"></div>
+    <div class="pagination" id="pagination"></div>
+  </div>
 </div>
 
 <script>
+// === Decryption ===
+async function deriveKey(password, salt) {
+  const enc = new TextEncoder();
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial,
+    { name: 'AES-GCM', length: 256 },
+    false,
+    ['decrypt']
+  );
+}
+
+async function decryptData(password) {
+  const resp = await fetch('data.enc.txt');
+  const b64 = await resp.text();
+  const raw = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+  const salt = raw.slice(0, 16);
+  const iv = raw.slice(16, 28);
+  const ciphertext = raw.slice(28);
+  const key = await deriveKey(password, salt);
+  const decrypted = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, ciphertext);
+  return JSON.parse(new TextDecoder().decode(decrypted));
+}
+
+// === Login ===
+async function attemptLogin() {
+  const pw = document.getElementById('passwordInput').value;
+  const btn = document.getElementById('loginBtn');
+  const errEl = document.getElementById('loginError');
+  const input = document.getElementById('passwordInput');
+  if (!pw) { errEl.textContent = 'パスワードを入力してください'; input.classList.add('error'); return; }
+
+  btn.disabled = true; btn.textContent = '認証中...'; errEl.textContent = ''; input.classList.remove('error');
+  try {
+    const data = await decryptData(pw);
+    sessionStorage.setItem('ofz_auth', '1');
+    initApp(data);
+  } catch (e) {
+    errEl.textContent = 'パスワードが正しくありません';
+    input.classList.add('error');
+    btn.disabled = false; btn.textContent = 'ログイン';
+  }
+}
+
+document.getElementById('passwordInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') attemptLogin();
+});
+document.getElementById('passwordInput').addEventListener('input', () => {
+  document.getElementById('passwordInput').classList.remove('error');
+  document.getElementById('loginError').textContent = '';
+});
+
+function initApp(data) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  allData = data;
+  allData.forEach(d => { d.aircraft = normAc(d.aircraft); });
+  buildFilters();
+  updateHeader();
+  doSearch();
+}
+
+// === App Logic ===
 let allData = [], filtered = [], currentPage = 1, currentSort = 'date-desc', currentTab = 'all', searchTerm = '';
 const PER_PAGE = 20;
 const TAB_SOURCE = { all: null, om: 'OM質問サイト', rm: 'Route Manual質問サイト', aom: 'AOM質問サイト' };
 
 function srcKey(s) { return s === 'OM質問サイト' ? 'om' : s === 'Route Manual質問サイト' ? 'rm' : 'aom'; }
 function normAc(a) { return a ? a.replace(/^B/, '') : ''; }
-
-fetch('data.json').then(r => r.json()).then(data => {
-  allData = data;
-  allData.forEach(d => { d.aircraft = normAc(d.aircraft); });
-  buildFilters();
-  updateHeader();
-  doSearch();
-});
 
 function buildFilters() {
   const acs = [...new Set(allData.map(d => d.aircraft).filter(Boolean))].sort();
